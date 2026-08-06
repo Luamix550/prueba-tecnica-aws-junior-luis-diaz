@@ -110,3 +110,14 @@ CMD ["node", "index.js"]
 ```
 
 **Respuesta:** Docker guarda cada instrucción como una capa. Si copio todo el código antes de instalar las dependencias (como estaba el Dockerfile original), cualquier cambio en cualquier archivo obliga a repetir el `npm install` completo en cada build, aunque no haya cambiado ninguna dependencia. Por eso primero copio solo el `package.json`, corro `npm install`, y ya después copio el resto del código. Así, si solo cambio código y no dependencias, Docker reutiliza la instalación anterior en lugar de repetirla, y el build es mucho más rápido.
+
+### Estrategia de Alertas en CloudWatch
+
+**Pregunta:** Describe en mínimo 4 pasos qué servicios de AWS usarías (CloudWatch Alarms, SNS) y cómo los configurarías para enviar una alerta por correo al equipo cuando la CPU supere el 85% durante más de 5 minutos.
+
+**Respuesta:**
+
+1. En CloudWatch, ir a la métrica `CPUUtilization` de la instancia EC2 y crear una alarma (**Create Alarm**).
+2. Configurar el umbral de la alarma: mayor a 85%, evaluado durante 5 minutos.
+3. Crear un SNS Topic y agregarlo como acción de la alarma, para que se dispare cuando el estado pase a "In Alarm".
+4. En SNS, crear una suscripción de tipo Email con el correo del equipo, y confirmar la suscripción desde el correo que llega (si no se confirma, no recibe las notificaciones).
