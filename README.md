@@ -51,6 +51,46 @@ prueba-tecnica-aws-junior-luis-diaz/
 
 ---
 
+### Escenario B (S3 / Frontend - Errores 403 y CORS)
+
+#### Explicación técnica
+
+**Pregunta:** Explica la diferencia entre un error por Permisos (IAM / S3 Bucket Policy) y un error de CORS.
+
+**Respuesta:** IAM es un servicio de AWS que permite el acceso y asignación de roles a usuarios, y S3 Bucket Policy son las reglas que se le dan al propio bucket: quién tiene permitido usarlo, desde dónde y cómo. Ambos son permisos que decide AWS del lado del servidor. CORS es distinto: es un mecanismo de seguridad que implementa el navegador, no AWS ni el backend, para controlar qué orígenes pueden hacer peticiones hacia el backend. El error de CORS aparece cuando el servidor sí procesó la petición pero no incluyó los headers correctos (origen, métodos, headers permitidos) para que el navegador deje pasar esa respuesta.
+
+#### Corrección de Permisos
+
+**Pregunta:** ¿Qué verificación realizarías en la política de Bucket de S3 o en las credenciales de la aplicación para resolver el error 403 Forbidden?
+
+**Respuesta:** En la Bucket Policy revisaría primero si hay algún `Deny` explícito bloqueando la acción, ya que un Deny siempre gana sobre un Allow. Luego confirmaría que exista un `Allow` para la acción necesaria (`s3:PutObject`) sobre el recurso correcto (`arn:aws:s3:::mi-bucket/*`), y revisaría el Block Public Access del bucket y de la cuenta, porque puede bloquear el acceso aunque la policy lo permita. En las credenciales de la aplicación, si el frontend sube directo a S3 con credenciales temporales (por ejemplo de un Cognito Identity Pool), verificaría que el rol IAM asociado tenga permiso `s3:PutObject` sobre ese bucket. Si se usa una URL pre-firmada generada por el backend, verificaría que no haya expirado y que el usuario/rol que la firmó tenga permiso sobre esa acción y ese bucket.
+
+#### Configuración CORS
+
+**Pregunta:** Muestra los pasos y la configuración JSON de cómo habilitar CORS en la consola de S3 para permitir peticiones desde `https://mi-app.com`.
+
+**Respuesta:** Los pasos serían:
+
+1. Entrar al bucket en la consola de S3.
+2. Ir a la pestaña **Permissions**.
+3. Bajar hasta la sección **Cross-origin resource sharing (CORS)**.
+4. Dar click en **Edit**.
+5. Pegar el JSON de configuración.
+6. Dar **Save changes**.
+
+```json
+[
+  {
+    "AllowedHeaders": ["Authorization", "Content-Type"],
+    "AllowedMethods": ["GET", "PUT", "POST"],
+    "AllowedOrigins": ["https://mi-app.com"],
+    "ExposeHeaders": ["ETag"]
+  }
+]
+```
+
+---
+
 ## Módulo 2: Operaciones, Docker y Monitoreo
 
 _(pendiente)_
