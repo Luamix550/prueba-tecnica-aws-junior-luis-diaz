@@ -93,4 +93,20 @@ prueba-tecnica-aws-junior-luis-diaz/
 
 ## Módulo 2: Operaciones, Docker y Monitoreo
 
-_(pendiente)_
+### Optimización de Dockerfile
+
+**Pregunta:** ¿Cómo reordenarías las instrucciones del Dockerfile para aprovechar la caché de capas de Docker y optimizar el tiempo de compilación/despliegue?
+
+Dockerfile optimizado (también está en [`/docker/Dockerfile`](docker/Dockerfile)):
+
+```dockerfile
+FROM node:18
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["node", "index.js"]
+```
+
+**Respuesta:** Docker guarda cada instrucción como una capa. Si copio todo el código antes de instalar las dependencias (como estaba el Dockerfile original), cualquier cambio en cualquier archivo obliga a repetir el `npm install` completo en cada build, aunque no haya cambiado ninguna dependencia. Por eso primero copio solo el `package.json`, corro `npm install`, y ya después copio el resto del código. Así, si solo cambio código y no dependencias, Docker reutiliza la instalación anterior en lugar de repetirla, y el build es mucho más rápido.
