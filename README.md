@@ -27,11 +27,27 @@ prueba-tecnica-aws-junior-luis-diaz/
 
 ### Escenario A (Laravel / EC2 / RDS - Connection Timed Out)
 
-#### Paso a paso de diagnóstico: los 3 chequeos clave
+#### Paso a paso de diagnóstico
+
+**Pregunta:** ¿Cuáles son los 3 primeros chequeos que realizarías en la consola de AWS para identificar la causa?
+
+**Respuesta:**
 
 1. **Security Group de RDS (regla de entrada / inbound):** confirmar que exista una regla que permita el puerto de la base de datos (3306 para MySQL) desde el origen correcto, idealmente el Security Group de la instancia EC2 y no una IP fija. Este es el chequeo más importante: los Security Groups son *stateful*, así que el tráfico de salida (outbound) de EC2 casi siempre viene permitido por defecto y casi nunca es la causa. La única regla que alguien tiene que configurar manualmente, y que suele faltar u olvidarse, es el inbound de RDS.
 2. **Prueba de conectividad desde la instancia EC2:** conectarse por SSH a la instancia y probar la conexión hacia el endpoint de RDS con un comando como `telnet <endpoint-rds> 3306` o `nc -zv <endpoint-rds> 3306`. Esto confirma si el problema es de red/Security Group o si es otra cosa (credenciales, motor caído, etc.).
 3. **Estado de la instancia RDS en la consola** (pestaña de estado y de *Events*): verificar que esté `Available` y no en `Storage-full`, en reinicio o en failover, y revisar las métricas de CloudWatch (`FreeStorageSpace`, `DatabaseConnections`) para descartar que esté saturada o sin espacio en disco.
+
+#### Solución de Red/Security Groups
+
+**Pregunta:** Si descubres que la instancia RDS o EC2 cambió de IP o que el Security Group fue modificado, ¿cómo corregirías la configuración de red/seguridad para restaurar la conexión siguiendo buenas prácticas?
+
+**Respuesta:** Usaría el DNS (endpoint) de RDS en vez de IPs fijas en la configuración de la aplicación, y en las reglas de entrada del Security Group referenciaría el Security Group de EC2 en lugar de una IP fija, aplicando el principio de mínimo privilegio.
+
+#### Acción para Almacenamiento
+
+**Pregunta:** Si la base de datos no tiene espacio en disco suficiente, ¿qué acción inmediata ejecutas en RDS para restablecer el servicio?
+
+**Respuesta:** Aumentaría el almacenamiento asignado (Allocated Storage) de la instancia RDS desde Modify, no la clase de instancia, porque eso es lo que aumenta el disco y se puede aplicar de inmediato sin downtime.
 
 ---
 
