@@ -25,7 +25,13 @@ prueba-tecnica-aws-junior-luis-diaz/
 
 ## Módulo 1: Resolución de Escenarios (Troubleshooting)
 
-_(pendiente)_
+### Escenario A (Laravel / EC2 / RDS - Connection Timed Out)
+
+#### Paso a paso de diagnóstico: los 3 chequeos clave
+
+1. **Security Group de RDS (regla de entrada / inbound):** confirmar que exista una regla que permita el puerto de la base de datos (3306 para MySQL) desde el origen correcto, idealmente el Security Group de la instancia EC2 y no una IP fija. Este es el chequeo más importante: los Security Groups son *stateful*, así que el tráfico de salida (outbound) de EC2 casi siempre viene permitido por defecto y casi nunca es la causa. La única regla que alguien tiene que configurar manualmente, y que suele faltar u olvidarse, es el inbound de RDS.
+2. **Prueba de conectividad desde la instancia EC2:** conectarse por SSH a la instancia y probar la conexión hacia el endpoint de RDS con un comando como `telnet <endpoint-rds> 3306` o `nc -zv <endpoint-rds> 3306`. Esto confirma si el problema es de red/Security Group o si es otra cosa (credenciales, motor caído, etc.).
+3. **Estado de la instancia RDS en la consola** (pestaña de estado y de *Events*): verificar que esté `Available` y no en `Storage-full`, en reinicio o en failover, y revisar las métricas de CloudWatch (`FreeStorageSpace`, `DatabaseConnections`) para descartar que esté saturada o sin espacio en disco.
 
 ---
 
